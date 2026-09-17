@@ -6,6 +6,8 @@ import { defineConfig, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 const webRoot = dirname(fileURLToPath(import.meta.url));
+/** Vercel serves this folder at the site front door. clarionlab.dev still uses /keel/. */
+const publicBase = process.env.VERCEL ? "/" : "/keel/";
 
 const COMPRESS_EXT = new Set([".wasm", ".js", ".css", ".html", ".svg", ".webmanifest"]);
 
@@ -51,7 +53,7 @@ function preloadWasm(): Plugin {
       handler(html, ctx) {
         const wasm = Object.keys(ctx.bundle ?? {}).find((k) => k.endsWith(".wasm"));
         if (!wasm) return html;
-        const href = `/keel/${wasm}`;
+        const href = `${publicBase}${wasm}`;
         const tag = `<link rel="preload" href="${href}" as="fetch" type="application/wasm" crossorigin>`;
         // Before the module script so the 7.7MB fetch starts during HTML parse.
         if (html.includes(tag)) return html;
@@ -65,7 +67,7 @@ function preloadWasm(): Plugin {
 }
 
 export default defineConfig({
-  base: "/keel/",
+  base: publicBase,
   build: {
     outDir: "dist",
     target: "es2022",
@@ -81,7 +83,7 @@ export default defineConfig({
         theme_color: "#000000",
         background_color: "#000000",
         display: "standalone",
-        start_url: "/keel/",
+        start_url: publicBase,
         icons: [
           { src: "icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
           { src: "icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
