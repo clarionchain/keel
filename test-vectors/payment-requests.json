@@ -1,0 +1,36 @@
+{
+  "description": "Sanitized payment-request parse vectors. No secrets.",
+  "network": "signet",
+  "vectors": [
+    {
+      "id": "empty",
+      "input": "",
+      "expect": { "kind": "empty" }
+    },
+    {
+      "id": "signet-bolt11-prefix",
+      "input": "lntbs10n1placeholder",
+      "expect": { "kind": "lightning_invoice", "network": "signet" }
+    },
+    {
+      "id": "mainnet-bolt11-rejected-on-signet",
+      "input": "lnbc10n1placeholder",
+      "expect": { "kind": "unsupported", "reason": "mainnet_on_signet" }
+    },
+    {
+      "id": "signet-bech32-onchain",
+      "input": "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+      "expect": { "kind": "onchain_address", "network": "signet_or_testnet" }
+    },
+    {
+      "id": "mainnet-bech32-rejected-on-signet",
+      "input": "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+      "expect": { "kind": "unsupported", "reason": "mainnet_on_signet" }
+    },
+    {
+      "id": "bip321-prefix",
+      "input": "bitcoin:tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx?amount=0.00001",
+      "expect": { "kind": "bip21", "network": "signet_or_testnet" }
+    }
+  ]
+}

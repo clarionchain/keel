@@ -1,0 +1,29 @@
+{
+  "name": "keel-web",
+  "private": true,
+  "version": "0.1.4",
+  "type": "module",
+  "description": "Keel — self-custodial Ark wallet, browser PWA (Bark WASM SDK)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@secondts/bark": "0.23.0",
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.5",
+    "serialize-javascript": "^6.0.2",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.19",
+    "vite-plugin-pwa": "^0.21.2",
+    "vitest": "^2.1.9"
+  },
+  "overrides": {
+    "serialize-javascript": "^6.0.2"
+  }
+}

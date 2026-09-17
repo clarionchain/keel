@@ -1,0 +1,69 @@
+# Secrets and wallet material — never commit
+AGENTS.md
+**/*.jks
+**/*.keystore
+**/*.p12
+**/*.pem
+**/*.key
+**/local.properties
+**/.env
+**/.env.*
+!**/.env.example
+**/credentials.json
+**/google-services.json
+**/AuthKey_*.p8
+**/*.mobileprovision
+**/*.provisionprofile
+!scripts/secret-scan.sh
+
+# Bark / Keel runtime data
+**/.bark/
+**/bark_wallet/
+**/db.sqlite
+**/db.sqlite-*
+**/*.sqlite
+**/wallet-data/
+**/backups/
+**/*.keelbackup
+
+# Android
+android/.gradle/
+android/build/
+android/**/build/
+android/**/.cxx/
+android/captures/
+android/*.iml
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# iOS / Xcode
+ios/DerivedData/
+ios/**/xcuserdata/
+ios/**/*.xcuserstate
+ios/**/Pods/
+ios/.build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+.cursor/
+
+# Tooling
+node_modules/
+.kotlin/
+.gradle/
+*.log
+hs_err_pid*
+replay_pid*
+
+# Web PWA
+web/node_modules/
+web/dist/
