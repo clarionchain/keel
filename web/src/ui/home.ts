@@ -9,12 +9,11 @@ function movementLabel(m: Movement): { text: string; amount: number; pending: bo
   const pending = m.status !== "finished" && m.status !== "successful" && m.completedAt == null;
   const kind = m.subsystemKind || m.subsystemName;
   let text = kind;
-  if (/arkoor|ark/i.test(kind)) text = amount < 0 ? "Ark send" : "Ark receive";
-  else if (/lightning/i.test(kind)) text = amount < 0 ? "Lightning send" : "Lightning receive";
-  else if (/board/i.test(kind)) text = "Board";
-  else if (/offboard/i.test(kind)) text = "Offboard";
-  else if (/exit/i.test(kind)) text = "Emergency exit";
-  else if (/refresh/i.test(kind)) text = "Refresh";
+  if (/arkoor|ark|lightning/i.test(kind)) text = amount < 0 ? "Sent" : "Received";
+  else if (/board/i.test(kind)) text = "Moved in";
+  else if (/offboard/i.test(kind)) text = "Moved out";
+  else if (/exit|start/i.test(kind)) text = "Recovery";
+  else if (/refresh|round/i.test(kind)) text = "Refresh";
   return { text, amount, pending };
 }
 
@@ -47,7 +46,6 @@ export function HomeScreen(app: App): HTMLElement {
     if (b.pendingRound > 0) parts.push(`${fmtSats(b.pendingRound)} settling`);
     if (b.lightningLocked > 0) parts.push(`${fmtSats(b.lightningLocked)} Lightning in flight`);
     if (b.boardPending > 0) parts.push(`${fmtSats(b.boardPending)} boarding`);
-    if (b.exitPending > 0) parts.push(`${fmtSats(b.exitPending)} exiting`);
     if (parts.length) el.append(h("p", { class: "muted small center" }, parts.join(" · ")));
   }
 
@@ -60,26 +58,25 @@ export function HomeScreen(app: App): HTMLElement {
   }
 
   if (s.hasPendingExits) {
-    el.append(h("button", { class: "danger pulse", onclick: () => void app.loadExit() }, "Emergency exit in progress"));
-  }
-
-  if (b && b.expired > 0) {
+    const recovering = b && b.exitPending > 0 ? `Recovering ${fmtSats(b.exitPending)} sats` : "Recovering";
     el.append(
-      h("div", { class: "banner row" },
-        h("span", { class: "grow" }, `${fmtSats(b.expired)} sats expired`),
-        h("button", { class: "text", style: "width:auto", onclick: () => void app.loadExit() }, "Recover on-chain")),
+      h("div", { class: "status row pulse" },
+        h("span", { class: "grow" }, recovering),
+        h("button", { class: "text", style: "width:auto", onclick: () => void app.loadExit() }, "View")),
+    );
+  } else if (b && b.expired > 0) {
+    el.append(
+      h("div", { class: "status warn row" },
+        h("span", { class: "grow" }, `${fmtSats(b.expired)} sats to recover`),
+        h("button", { class: "text", style: "width:auto", onclick: () => void app.loadExit() }, "Recover")),
     );
   } else if (b && b.expiringSoon > 0) {
-    el.append(
-      h("div", { class: "banner warn row" },
-        h("span", { class: "grow" }, `${fmtSats(b.expiringSoon)} sats expire soon — the server will refresh them automatically`),
-      ),
-    );
+    el.append(h("p", { class: "muted small center" }, "Refreshing automatically"));
   }
 
   if (b && b.onchain > 0) {
     el.append(
-      h("div", { class: "banner info row" },
+      h("div", { class: "status row" },
         h("span", { class: "grow" }, `${fmtSats(b.onchain)} sats on-chain`),
         h("button", { class: "text", style: "width:auto", onclick: () => void app.boardAll() }, "Move to Ark")),
     );
@@ -96,7 +93,7 @@ export function HomeScreen(app: App): HTMLElement {
 
   if (s.history.length > 0) {
     el.append(
-      h("h2", {}, "Activity"),
+      h("p", { class: "muted small" }, "Activity"),
       h("div", { class: "activity" },
         ...s.history.map((m) => {
           const { text, amount, pending } = movementLabel(m);

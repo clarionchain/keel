@@ -92,10 +92,10 @@ export function SendScreen(app: App): HTMLElement {
 
   if (s.sendPhase === "failed_recovery") {
     el.append(
-      h("div", { class: "banner row" },
-        h("span", { class: "grow" }, s.sendHint ?? "Cannot send"),
+      h("div", { class: "status warn row" },
+        h("span", { class: "grow" }, s.sendHint ?? "Recover these sats first"),
       ),
-      h("button", { onclick: () => void app.loadExit() }, "Recover on-chain"),
+      h("button", { onclick: () => void app.loadExit() }, "Recover"),
       h("button", { class: "text", onclick: () => app.resetSend() }, "Start over"),
     );
   }

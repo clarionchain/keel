@@ -102,13 +102,26 @@ button.text {
 
 button.danger { background: transparent; border: 1px solid var(--error); color: var(--error); }
 
-/* Subtle "working" pulse — used on the exit-in-progress button to signal life. */
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); border-color: var(--error); }
-  50% { box-shadow: 0 0 14px 3px rgba(239, 68, 68, 0.4); border-color: #ff7b7b; }
+.status {
+  border: none;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin: 8px 0;
 }
-button.pulse { animation: pulseGlow 2.2s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { button.pulse { animation: none; } }
+.status.warn { background: rgba(245, 166, 35, 0.12); color: #fbbf24; }
+.status.warn button.text { color: #fbbf24; }
+.status button.text { color: #60a5fa; }
+
+/* Subtle working pulse on the recovering row. */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+  50% { box-shadow: 0 0 14px 3px rgba(59, 130, 246, 0.35); }
+}
+.status.pulse { animation: pulseGlow 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .status.pulse { animation: none; } }
 
 input, textarea {
   width: 100%;

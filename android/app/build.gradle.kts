@@ -12,8 +12,8 @@ android {
         applicationId = "io.clarionchain.keel"
         minSdk = 24
         targetSdk = 35
-        versionCode = 22
-        versionName = "0.5.15"
+        versionCode = 23
+        versionName = "0.5.16"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Phones only: drops x86/x86_64 native libs (~22 MB) from the test APKs.
         // Rebuild without this for an x86_64 emulator.

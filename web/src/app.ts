@@ -474,7 +474,7 @@ export class App {
         this.set({
           busy: false,
           sendPhase: "failed_recovery",
-          sendHint: `Some funds have expired and cannot be sent normally. Expired: ${expiry.expiredSats} sats. Recover them on-chain with an emergency exit.`,
+          sendHint: `Recover these sats first. ${expiry.expiredSats} sats.`,
         });
         return;
       }
@@ -534,7 +534,7 @@ export class App {
         this.set({
           busy: false,
           sendPhase: "failed_recovery",
-          sendHint: "Some funds have expired and cannot be sent normally. Recover them on-chain with an emergency exit.",
+          sendHint: "Recover these sats first.",
         });
         await this.refreshHome({ quiet: true });
         return;
@@ -636,7 +636,7 @@ export class App {
     this.set({ busy: true, error: undefined });
     try {
       await this.wallet.startExitForEntireWallet();
-      this.set({ busy: false, notice: "Emergency exit started" });
+      this.set({ busy: false, notice: "Recovery started" });
       await this.loadExit();
       await this.refreshHome();
     } catch (e) {

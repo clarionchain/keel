@@ -18,7 +18,6 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -320,17 +319,50 @@ private fun RestoreOrVerify(state: KeelUiState, vm: KeelViewModel) {
 }
 
 @Composable
+private fun StatusRow(
+    text: String,
+    action: String? = null,
+    onAction: (() -> Unit)? = null,
+    tint: Color,
+    pulse: Boolean = false,
+) {
+    val transition = rememberInfiniteTransition(label = "statusPulse")
+    val animated by transition.animateFloat(
+        initialValue = 0.55f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "statusPulseAlpha",
+    )
+    val pulseAlpha = if (pulse) animated else 1f
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = tint.copy(alpha = 0.14f * pulseAlpha),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text,
+                Modifier.weight(1f),
+                color = tint,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (action != null && onAction != null) {
+                TextButton(onClick = onAction) { Text(action, color = tint) }
+            }
+        }
+    }
+}
+
+@Composable
 private fun Home(state: KeelUiState, vm: KeelViewModel) {
     val b = state.balance
     val spendable = b?.spendable?.value ?: 0L
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Spacer(Modifier.height(48.dp))
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "SPENDABLE",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(formatSats(spendable), style = MaterialTheme.typography.displayLarge)
                 Text(
@@ -369,50 +401,33 @@ private fun Home(state: KeelUiState, vm: KeelViewModel) {
         }
         if (state.hasPendingExits) {
             Spacer(Modifier.height(12.dp))
-            // Subtle pulsing border: signals the exit is actively progressing.
-            val exitPulse = rememberInfiniteTransition(label = "exitPulse")
-            val exitPulseAlpha by exitPulse.animateFloat(
-                initialValue = 0.3f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                label = "exitPulseAlpha",
+            StatusRow(
+                text = if (b != null && b.exitPending.value > 0) {
+                    "Recovering ${formatSats(b.exitPending.value)} sats"
+                } else {
+                    "Recovering"
+                },
+                action = "View",
+                onAction = vm::loadExit,
+                tint = MaterialTheme.colorScheme.primary,
+                pulse = true,
             )
-            OutlinedButton(
-                onClick = vm::loadExit,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.error.copy(alpha = exitPulseAlpha)),
-            ) {
-                Text("Emergency exit in progress", color = MaterialTheme.colorScheme.error)
-            }
-        }
-
-        if (b != null && b.expired.value > 0) {
+        } else if (b != null && b.expired.value > 0) {
+            Spacer(Modifier.height(12.dp))
+            StatusRow(
+                text = "${formatSats(b.expired.value)} sats to recover",
+                action = "Recover",
+                onAction = vm::loadExit,
+                tint = Color(0xFFFBBF24),
+            )
+        } else if (b != null && b.expiringSoon.value > 0) {
             Spacer(Modifier.height(12.dp))
             Text(
-                "${formatSats(b.expired.value)} sats expired and cannot be sent normally",
-                color = MaterialTheme.colorScheme.error,
+                "Refreshing automatically",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth(),
             )
-            Button(onClick = vm::loadExit, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("Recover on-chain")
-            }
-        }
-
-        if (b != null && b.expiringSoon.value > 0 && b.expired.value == 0L) {
-            Spacer(Modifier.height(12.dp))
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    "${formatSats(b.expiringSoon.value)} sats expire soon",
-                    Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                TextButton(onClick = vm::refreshDueVtxos, enabled = !state.busy) { Text("Refresh now") }
-            }
         }
 
         val empty = b != null && spendable == 0L &&
@@ -431,8 +446,6 @@ private fun Home(state: KeelUiState, vm: KeelViewModel) {
             if (b.pendingRound.value > 0) rows += "Settling in Ark" to b.pendingRound.value
             if (b.lightningLocked.value > 0) rows += "In a Lightning payment" to b.lightningLocked.value
             if (b.boardPending.value > 0) rows += "Moving into Ark" to b.boardPending.value
-            if (b.exitPending.value > 0) rows += "Exit in progress" to b.exitPending.value
-            if (b.onchain.value > 0) rows += "On-chain" to b.onchain.value
         }
         if (rows.isNotEmpty()) {
             Spacer(Modifier.height(24.dp))
@@ -443,11 +456,15 @@ private fun Home(state: KeelUiState, vm: KeelViewModel) {
                 }
             }
         }
-        if ((b?.onchain?.value ?: 0L) > 0) {
+        val onchain = b?.onchain?.value ?: 0L
+        if (onchain > 0) {
             Spacer(Modifier.height(12.dp))
-            Button(onClick = vm::boardAll, enabled = !state.busy, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("Move to Ark")
-            }
+            StatusRow(
+                text = "${formatSats(onchain)} sats on-chain",
+                action = "Move",
+                onAction = vm::boardAll,
+                tint = MaterialTheme.colorScheme.primary,
+            )
         }
 
         Spacer(Modifier.height(24.dp))
@@ -465,7 +482,7 @@ private fun Home(state: KeelUiState, vm: KeelViewModel) {
         if (state.history.isNotEmpty()) {
             Spacer(Modifier.height(24.dp))
             Text(
-                "ACTIVITY",
+                "Activity",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -506,17 +523,19 @@ private fun HistoryRow(movement: Movement) {
 }
 
 private fun movementLabel(movement: Movement): String {
-    val base = when (movement.subsystemKind.lowercase()) {
-        "arkoor" -> "Ark payment"
-        "lightning" -> "Lightning"
-        "board" -> "Board"
-        "offboard" -> "Offboard"
-        "exit" -> "Exit"
-        "round" -> "Refresh"
+    val incoming = movement.effectiveBalanceSats > 0
+    val kind = movement.subsystemKind.lowercase()
+    val base = when {
+        kind == "arkoor" || kind == "ark" || kind == "lightning" -> if (incoming) "Received" else "Sent"
+        kind == "board" -> "Moved in"
+        kind == "offboard" -> "Moved out"
+        kind == "exit" || kind == "start" -> "Recovery"
+        kind == "round" -> "Refresh"
         else -> movement.subsystemKind.replaceFirstChar { it.uppercase() }
     }
     val status = movement.status.lowercase()
-    return if (status == "finished" || status == "success" || status == "complete") base else "$base - $status"
+    val done = status in setOf("finished", "success", "successful", "complete")
+    return if (done) base else "$base · pending"
 }
 
 private fun movementTime(createdAt: String): String =
@@ -781,14 +800,12 @@ private fun Send(state: KeelUiState, vm: KeelViewModel) {
         }
         if (state.sendPhase == ArkSendPhase.FAILED_RECOVERY) {
             Spacer(Modifier.height(8.dp))
-            Text(
-                "Cannot send",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.titleMedium,
+            StatusRow(
+                text = "Recover these sats first",
+                action = "Recover",
+                onAction = vm::loadExit,
+                tint = Color(0xFFFBBF24),
             )
-            Button(onClick = vm::loadExit, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("Recover on-chain")
-            }
             TextButton(onClick = vm::resetSend, modifier = Modifier.fillMaxWidth()) { Text("Start over") }
         }
         TextButton(onClick = { vm.go(Screen.HOME) }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
@@ -988,7 +1005,7 @@ private fun Settings(state: KeelUiState, vm: KeelViewModel) {
         OutlinedButton(
             onClick = vm::loadExit,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Emergency exit") }
+        ) { Text("Recover funds") }
         OutlinedButton(
             onClick = {
                 confirmSpend(activity, onAuthenticated = { vm.revealPhrase(true) }, onError = {})
@@ -1017,7 +1034,7 @@ private fun Exit(state: KeelUiState, vm: KeelViewModel) {
     val activity = view.context as FragmentActivity
     var confirmStart by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Emergency exit", style = MaterialTheme.typography.headlineSmall)
+        Text("Recover funds", style = MaterialTheme.typography.headlineSmall)
         Text(
             "Pulls all funds back on-chain without the Ark server's cooperation. Slow (timelocks) and costs on-chain fees. Only needed if the server is gone or censoring you.",
             style = MaterialTheme.typography.bodySmall,
@@ -1059,20 +1076,20 @@ private fun Exit(state: KeelUiState, vm: KeelViewModel) {
                 onClick = { confirmStart = true },
                 enabled = !state.busy,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-            ) { Text("Start exit for entire wallet") }
+            ) { Text("Start recovery") }
         }
         TextButton(onClick = { vm.go(Screen.SETTINGS) }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
     }
     if (confirmStart) {
         AlertDialog(
             onDismissRequest = { confirmStart = false },
-            title = { Text("Start emergency exit?") },
+            title = { Text("Start recovery?") },
             text = { Text("All Ark funds will move on-chain. This cannot be undone and normal sends pause while it completes.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmStart = false
                     confirmSpend(activity, onAuthenticated = vm::startExit, onError = {})
-                }) { Text("Start exit", color = MaterialTheme.colorScheme.error) }
+                }) { Text("Start recovery", color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
                 TextButton(onClick = { confirmStart = false }) { Text("Cancel") }

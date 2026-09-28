@@ -511,7 +511,7 @@ class KeelViewModel(application: Application) : AndroidViewModel(application) {
             runCatching { wallet.startExitForEntireWallet() }
                 .onSuccess {
                     walletDirty = true
-                    _state.update { it.copy(busy = false, notice = "Emergency exit started") }
+                    _state.update { it.copy(busy = false, notice = "Recovery started") }
                     refreshExits()
                 }
                 .onFailure { err -> _state.update { it.copy(busy = false, error = safeMessage(err)) } }
@@ -871,8 +871,8 @@ class KeelViewModel(application: Application) : AndroidViewModel(application) {
 /** Expired VTXOs can never be spent normally; the only path is on-chain recovery. */
 private class ExpiredFundsException(expiredSats: Long? = null) : Exception(
     buildString {
-        append("Some funds have expired and cannot be sent normally.")
-        if (expiredSats != null && expiredSats > 0) append(" Expired: $expiredSats sats.")
+        append("Recover these sats first.")
+        if (expiredSats != null && expiredSats > 0) append(" ${expiredSats} sats.")
         append(" Recover them on-chain with an emergency exit.")
     },
 )

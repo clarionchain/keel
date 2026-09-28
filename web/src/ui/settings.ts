@@ -27,7 +27,7 @@ export function SettingsScreen(app: App): HTMLElement {
       h("div", { class: "spread" }, h("span", { class: "k" }, "Network"), h("span", {}, "Signet (test coins)")),
       h("div", { class: "spread" }, h("span", { class: "k" }, "Wallet"), h("span", { class: "mono small" }, shortAddr(s.fingerprint ?? "—"))),
       h("div", { class: "spread" }, h("span", { class: "k" }, "Engine"), h("span", {}, "Bark WASM 0.23.0")),
-      h("div", { class: "spread" }, h("span", { class: "k" }, "App"), h("span", {}, "Keel PWA 0.1.27")),
+      h("div", { class: "spread" }, h("span", { class: "k" }, "App"), h("span", {}, "Keel PWA 0.1.28")),
     ),
     h("div", { class: "card", id: "server-info" }),
   );
@@ -82,7 +82,7 @@ export function SettingsScreen(app: App): HTMLElement {
 
   el.append(
     h("h2", {}, "Advanced"),
-    h("button", { class: "secondary", onclick: () => void app.loadExit() }, "Emergency exit"),
+    h("button", { class: "secondary", onclick: () => void app.loadExit() }, "Recover funds"),
     h("a", { class: "btn secondary", href: APK_FILE, download: APK_FILE }, `Get the Android app v${APK_VERSION}`),
   );
 
@@ -106,7 +106,7 @@ export function SettingsScreen(app: App): HTMLElement {
 export function ExitScreen(app: App): HTMLElement {
   const s = app.state;
   const el = h("div", {},
-    h("h1", {}, "Emergency exit"),
+    h("h1", {}, "Recover funds"),
     h("p", { class: "muted small" },
       "Pulls your funds back on-chain without the Ark server. Transactions broadcast now; you can spend them after a timelock (about a day on signet)."),
   );
@@ -116,8 +116,8 @@ export function ExitScreen(app: App): HTMLElement {
   if (inProgress.length > 0) {
     const sats = inProgress.reduce((sum, v) => sum + v.amountSats, 0);
     el.append(
-      h("div", { class: "banner info row" },
-        h("span", { class: "grow" }, `Recovery in progress — ${fmtSats(sats)} sats moving on-chain. Nothing more to do until the timelock passes.`)),
+      h("div", { class: "status row" },
+        h("span", { class: "grow" }, `${fmtSats(sats)} sats recovering`)),
     );
   }
 
@@ -142,7 +142,7 @@ export function ExitScreen(app: App): HTMLElement {
   // the exit was already started reads as if the tap did nothing.
   const spendableLeft = s.balance?.spendable ?? 0;
   if (spendableLeft > 0 || exits.length === 0) {
-    const start = h("button", { class: "danger" }, "Start exit for entire wallet") as HTMLButtonElement;
+    const start = h("button", { class: "danger" }, "Start recovery") as HTMLButtonElement;
     let armed = false;
     start.addEventListener("click", () => {
       if (!armed) {
