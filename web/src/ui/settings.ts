@@ -27,7 +27,7 @@ export function SettingsScreen(app: App): HTMLElement {
       h("div", { class: "spread" }, h("span", { class: "k" }, "Network"), h("span", {}, "Signet (test coins)")),
       h("div", { class: "spread" }, h("span", { class: "k" }, "Wallet"), h("span", { class: "mono small" }, shortAddr(s.fingerprint ?? "—"))),
       h("div", { class: "spread" }, h("span", { class: "k" }, "Engine"), h("span", {}, "Bark WASM 0.23.0")),
-      h("div", { class: "spread" }, h("span", { class: "k" }, "App"), h("span", {}, "Keel PWA 0.1.28")),
+      h("div", { class: "spread" }, h("span", { class: "k" }, "App"), h("span", {}, "Keel PWA 0.1.29")),
     ),
     h("div", { class: "card", id: "server-info" }),
   );

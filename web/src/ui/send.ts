@@ -61,7 +61,7 @@ export function SendScreen(app: App): HTMLElement {
         h("div", { class: "spread" }, h("span", { class: "k" }, "Fee"), h("span", {}, `${fmtSats(s.sendFee ?? 0)} sats`)),
         h("div", { class: "spread" }, h("span", { class: "k" }, "Total"), h("span", {}, `${fmtSats(s.sendTotal ?? 0)} sats`)),
         h("div", { class: "spread" }, h("span", { class: "k" }, "Network"), h("span", {}, "Signet")),
-        h("p", { class: "error small" }, "Cannot be reversed"),
+        h("p", { class: "muted small" }, "Cannot be reversed"),
       ),
       h("button", { onclick: () => void app.submitSend(), disabled: s.busy }, "Confirm and send"),
     );
@@ -73,7 +73,7 @@ export function SendScreen(app: App): HTMLElement {
 
   if (s.sendPhase === "reconciling") {
     el.append(
-      h("div", { class: "banner info row" },
+      h("div", { class: "status row" },
         h("span", { class: "grow" }, s.sendHint ?? "Checking if it went through…"),
       ),
       h("button", { class: "secondary", onclick: () => void app.checkPendingSend(), disabled: s.busy }, "Sync"),
@@ -82,7 +82,7 @@ export function SendScreen(app: App): HTMLElement {
 
   if (s.sendPhase === "failed_retryable") {
     el.append(
-      h("div", { class: "banner row" },
+      h("div", { class: "status warn row" },
         h("span", { class: "grow" }, s.sendHint ?? "Send failed"),
       ),
       h("button", { onclick: () => void app.prepareSend(), disabled: s.busy }, "Retry"),

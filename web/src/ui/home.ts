@@ -30,8 +30,8 @@ export function HomeScreen(app: App): HTMLElement {
       h("div", { class: "fiat" }, satsToFiat(spendable, s.price) || " "),
     ),
     h("div", { class: "hero-actions" },
+      h("button", { disabled: !!s.opening, onclick: () => app.go("receive") }, "Receive"),
       h("button", { disabled: !!s.opening, onclick: () => { app.resetSend(); app.go("send"); } }, "Send"),
-      h("button", { class: "secondary", disabled: !!s.opening, onclick: () => app.go("receive") }, "Receive"),
     ),
   );
 
@@ -51,8 +51,8 @@ export function HomeScreen(app: App): HTMLElement {
 
   if (s.poisoned) {
     el.append(
-      h("div", { class: "banner warn row" },
-        h("span", { class: "grow" }, "The Ark test server is malfunctioning and crashed the wallet engine (server-side — funds are safe). Reload to retry."),
+      h("div", { class: "status warn row" },
+        h("span", { class: "grow" }, "Test server hiccup — funds are safe"),
         h("button", { class: "text", style: "width:auto", onclick: () => location.reload() }, "Reload")),
     );
   }

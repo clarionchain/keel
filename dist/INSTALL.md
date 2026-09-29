@@ -4,15 +4,15 @@
 
 ## Install on Android
 
-1. Download `keel-0.5.16-signet.apk` to your Android phone.
+1. Download `keel-0.5.17-signet.apk` to your Android phone.
 2. When Android asks, allow "install unknown apps" for your browser/Files app.
 3. Open the APK to install. It is a debug build, signed with a local debug key.
 
 ## Verify the download (optional)
 
 ```
-sha256sum keel-0.5.16-signet.apk
-# must match keel-0.5.16-signet.apk.sha256
+sha256sum keel-0.5.17-signet.apk
+# must match keel-0.5.17-signet.apk.sha256
 ```
 
 ## Use it

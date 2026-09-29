@@ -29,10 +29,12 @@ function toast(kind: "error" | "info", msg: string): HTMLElement {
     if (kind === "error") app.set({ error: undefined });
     else app.set({ notice: undefined });
   };
-  const el = h("div", { class: `toast ${kind}`, role: "alert" },
-    h("span", { class: "dot" }),
+  const el = h("div", {
+    class: `toast ${kind}`,
+    role: kind === "error" ? "alert" : "status",
+    onclick: clear,
+  },
     h("span", { class: "msg" }, msg),
-    h("button", { class: "x", onclick: clear }, "✕"),
   );
   const timer = window.setTimeout(clear, kind === "error" ? 8000 : 5000);
   liveToasts.set(key, { el, timer });
@@ -49,7 +51,7 @@ function chrome(content: HTMLElement): HTMLElement {
       h("span", { class: "badge" }, "Signet — test coins"),
       h("img", { class: "header-logo", src: "icon-192.png", alt: "Keel" }),
     ),
-    s.busy ? h("div", { class: "spinner" }) : null,
+    s.busy ? h("div", { class: "busy-bar", "aria-hidden": "true" }) : null,
     content,
     toasts.length ? h("div", { class: "toast-stack" }, ...toasts) : null,
   );

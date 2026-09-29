@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 private val Black = Color(0xFF000000)
 private val White = Color(0xFFFFFFFF)
 private val Blue = Color(0xFF3B82F6)
-private val Danger = Color(0xFFFF6B6B)
+private val Danger = Color(0xFFFF453A)
 
 private val DarkColors = darkColorScheme(
     primary = Blue,
@@ -18,7 +18,7 @@ private val DarkColors = darkColorScheme(
     surface = Color(0xFF101010),
     onSurface = White,
     surfaceVariant = Color(0xFF1A1A1A),
-    onSurfaceVariant = Color(0xFF9E9E9E),
+    onSurfaceVariant = Color(0xFF8E8E93),
     error = Danger,
     onError = Black,
 )

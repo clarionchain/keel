@@ -106,9 +106,8 @@ export function WelcomeScreen(app: App): HTMLElement {
     hasVault ? h("button", { onclick: () => app.go("locked") }, "Unlock your wallet") : null,
     createBtn,
     h("button", { class: "secondary", onclick: () => app.go("restore") }, "Restore existing wallet"),
-    h("div", { class: "card" },
-      h("div", { class: "small muted" }, "On Android? Get the native app:"),
-      h("a", { class: "btn secondary", href: APK_FILE, download: APK_FILE }, `Download Android APK v${APK_VERSION}`)),
+    h("p", { class: "muted small center" }, "On Android?"),
+    h("a", { class: "btn secondary", href: APK_FILE, download: APK_FILE }, `Download Android APK v${APK_VERSION}`),
   );
 }
 

@@ -19,6 +19,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -109,6 +110,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
 import kotlin.math.abs
+import kotlinx.coroutines.delay
 import uniffi.bark.ExitState
 import uniffi.bark.Movement
 
@@ -131,19 +133,13 @@ fun KeelRoot(vm: KeelViewModel = viewModel()) {
         }
     }
     Scaffold { padding ->
-        Surface(Modifier.fillMaxSize().padding(padding)) {
+        Box(Modifier.fillMaxSize().padding(padding)) {
             Column(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
                 SignetBadge()
                 if (state.busy) {
-                    LinearProgressIndicator(Modifier.fillMaxWidth().semantics { contentDescription = "Working" })
-                }
-                state.error?.let { message ->
-                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = vm::dismissError) { Text("Dismiss") }
-                }
-                state.notice?.let { message ->
-                    Text(message, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = vm::dismissNotice) { Text("OK") }
+                    LinearProgressIndicator(
+                        Modifier.fillMaxWidth().height(2.dp).semantics { contentDescription = "Working" },
+                    )
                 }
                 when (state.screen) {
                     Screen.LOADING -> { /* boot is a local file check; next frame is Welcome or Locked */ }
@@ -152,16 +148,57 @@ fun KeelRoot(vm: KeelViewModel = viewModel()) {
                     Screen.SHOW_PHRASE -> ShowPhrase(state, vm)
                     Screen.VERIFY_PHRASE, Screen.RESTORE -> RestoreOrVerify(state, vm)
                     Screen.HOME -> Home(state, vm)
-            Screen.RECEIVE -> Receive(state, vm)
-            Screen.SEND -> Send(state, vm)
-            Screen.SCAN_QR -> ScanQr(vm)
-            Screen.EXIT -> Exit(state, vm)
+                    Screen.RECEIVE -> Receive(state, vm)
+                    Screen.SEND -> Send(state, vm)
+                    Screen.SCAN_QR -> ScanQr(vm)
+                    Screen.EXIT -> Exit(state, vm)
                     Screen.SETTINGS -> Settings(state, vm)
                     Screen.GET_TEST_COINS -> GetTestCoins(state, vm)
                     Screen.REVEAL_PHRASE -> Reveal(state, vm)
                 }
             }
+            val feedback = state.error ?: state.notice
+            if (feedback != null) {
+                FeedbackSnack(
+                    message = feedback,
+                    lingerMs = if (state.error != null) 8_000 else 5_000,
+                    onDismiss = {
+                        if (state.error != null) vm.dismissError() else vm.dismissNotice()
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun FeedbackSnack(
+    message: String,
+    lingerMs: Long,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LaunchedEffect(message) {
+        delay(lingerMs)
+        onDismiss()
+    }
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 20.dp)
+            .clickable(onClick = onDismiss),
+        color = Color(0xEB1C1C1E),
+        shape = RoundedCornerShape(14.dp),
+        shadowElevation = 10.dp,
+    ) {
+        Text(
+            message,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            color = Color(0xFFF5F5F7),
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 3,
+        )
     }
 }
 
@@ -177,7 +214,7 @@ private fun SignetBadge() {
         Image(
             painterResource(R.drawable.logo),
             contentDescription = "Keel",
-            modifier = Modifier.align(Alignment.CenterStart).size(56.dp).clip(RoundedCornerShape(14.dp)),
+            modifier = Modifier.align(Alignment.CenterStart).size(40.dp).clip(RoundedCornerShape(10.dp)),
         )
     }
 }
@@ -778,7 +815,7 @@ private fun Send(state: KeelUiState, vm: KeelViewModel) {
             ConfirmRow("Network", BuildConfig.DEFAULT_NETWORK.replaceFirstChar { it.uppercase() })
             Text(
                 "Cannot be reversed",
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
             )
             Button(
